@@ -15,10 +15,36 @@
             {
                 <h2>Create newsletters</h2>
                 <label>How many <input type="number" name="count" value="10" /></label>
-                <label>Format (T=trip, H=Host) <input type="text" name="formatter" value="@Model.setString" maxlength="9"/>
-            
-            </label>
+                <label>Format <input type="text" name="formatter" value="@Model.setString" maxlength="9"  /> (T=trip, H=Host) </label>
                 <p>Example TTTHHTTT fr 3 trips, 2 hosts, 3 trips.</p>
+
+                <label>Group items together? <input type="checkbox" name="seperate" @Model.seperate /></label>
+                <h4>Example</h4>
+                <table class="tbl">
+                    <tr>
+                        <td>
+                            <b>ON</b>
+                            <table id="exampleWith">
+                                <tr><td>T</td><td>T</td></tr>
+                                <tr><td colspan="2">T</td></tr>
+                                <tr><td>H</td><td>H</td></tr>
+                                <tr><td>T</td><td>T</td></tr>
+                            </table>
+
+                        </td>
+                        <td>
+                            <b>OFF</b>
+                            <table id="exampleWithout">
+                                <tr><td>T</td><td>T</td></tr>
+                                <tr><td>T</td><td>H</td></tr>
+                                <tr><td>H</td><td>T</td></tr>
+                                <tr><td>T</td></tr>
+                            </table>
+
+                        </td>
+
+                    </tr>
+                </table>
                 <button class="btn btn-default" type="submit">Create newsletters</button>
             }
         </div>
@@ -28,12 +54,12 @@
         </div>
         <div class="list">
             <p>Trips used</p>
-            <ul> 
-                @foreach(string v in Model.res)
+            <ul>
+                @foreach (string v in Model.res)
                 {
                     <li>@v</li>
                 }
-                    
+
             </ul>
         </div>
         <div class="list">
@@ -47,7 +73,7 @@
             </ul>
         </div>
     </div>
-    
+
     @if (Model.Newsletters.Any())
     {
         <div class="col-md-4">

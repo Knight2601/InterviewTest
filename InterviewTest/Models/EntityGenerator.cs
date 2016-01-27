@@ -10,13 +10,14 @@ namespace InterviewTest.Models
         public static splitsText GenerateS() => new splitsText
         {
             layoutString = "TTHHTT",
+            seperate = "checked",
             Id = "00000",
         };
 
         public static Layoutsplits GenerateL() => new Layoutsplits
         {
             layoutOf = new List<List<string>>(),
-            Id="00000",
+            Id = "00000",
         };
 
         public static Host GenerateHost() => new Host
@@ -24,8 +25,8 @@ namespace InterviewTest.Models
             Name = $"{FirstNames.GetRandom()} {LastNames.GetRandom()}",
             Job = $"{Jobs1.GetRandom()} {Jobs2.GetRandom()}",
             ImageUrl = ImageUrls.GetRandom(),
-            used=0,
-            addclass="",
+            used = 0,
+            addclass = "",
         };
 
         public static Trip GenerateTrip(string hostId) => new Trip
@@ -34,10 +35,10 @@ namespace InterviewTest.Models
             Country = Countries.GetRandom(),
             HostId = hostId,
             ImageUrl = ImageUrls.GetRandom(),
-            used=0,
-            addclass="",
+            used = 0,
+            addclass = "",
         };
-        
+
         private static string[] Countries => new[] { "France", "Italy", "Portugal", "Spain", "USA" };
         private static string[] Activities => new[] { "Surf", "Cookery", "Painting", "Knitting" };
         private static string[] TripTypes => new[] { "Holiday", "Trip", "Retreat", "Experience" };

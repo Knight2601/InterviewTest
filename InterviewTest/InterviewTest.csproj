@@ -129,8 +129,6 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\EntityGenerator.cs" />
-    <Compile Include="Models\ItemCollection.cs" />
-    <Compile Include="Models\Items.cs" />
     <Compile Include="Models\splitsText.cs" />
     <Compile Include="Models\splits.cs" />
     <Compile Include="Models\Newsletter.cs" />

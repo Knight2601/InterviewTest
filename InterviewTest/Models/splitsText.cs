@@ -9,7 +9,7 @@ namespace InterviewTest.Models
      
         public string layoutString { get; set; }
         public string Id { get; set; }
-
+        public string seperate { get; set; }
 
     }
 }

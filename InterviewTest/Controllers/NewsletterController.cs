@@ -26,33 +26,47 @@ namespace InterviewTest.Controllers
             return sp.layoutString;
         }
 
-        public ActionResult Create(int count, string formatter)
+        public string getBool()
         {
-            if(!formatter.Contains("T") || !formatter.Contains("H"))
+            var db = GetDatabase();
+            splitsText sp = db.Get<splitsText>("00000");
+            if (sp == null)
+            {
+                return "";
+            }
+            return sp.seperate;
+        }
+
+        public ActionResult Create(int count, string formatter, string seperate)
+        {
+            if (!formatter.Contains("T") || !formatter.Contains("H"))
             {
                 TempData["notification"] = $"Couldn't make newsletters as you were missing T or H";
 
                 return RedirectToAction("list");
 
             }
+            seperate = seperate == null ? "" : "checked";
+
             var db = GetDatabase();
 
             splits.layoutOf = new List<List<string>>();
 
             typesOf = formatter.ToCharArray();
-            splitsText sp = new splitsText();
-            sp.Id = "00000";
-            sp.layoutString = formatter;
+            splitsText sp = new splitsText() { Id = "00000", seperate = seperate, layoutString = formatter };
+            //sp.Id = "00000"; sp.seperate = seperate;
+            //sp.layoutString = formatter;
             db.Save<splitsText>(sp);
 
+            int cT = typesOf.Where(x => x == "T"[0]).Select(x => x).Count();
+            int cH = typesOf.Where(x => x == "H"[0]).Select(x => x).Count();
 
-           
             for (int i = 0; i < count; i++)
             {
                 splits.layoutOf = new List<List<string>>();
-                string[] hostIds = db.GetAll<Host>().OrderBy(h => h.used).Select(h => h.Id).Take(9).ToArray();
-                string[] tripIds = db.GetAll<Trip>().OrderBy(t => t.used).Select(t => t.Id).Take(9).ToArray();
-                // only grab top 9 records so most popular isnt reused until its been caught up with.
+                string[] hostIds = db.GetAll<Host>().OrderBy(h => h.used).Select(h => h.Id).Take(cH).ToArray();
+                string[] tripIds = db.GetAll<Trip>().OrderBy(t => t.used).Select(t => t.Id).Take(cT).ToArray();
+                // only grab required # of records so most popular isnt reused until its been caught up with.
 
                 int counter = 1;
                 for (int ii = 0; ii < typesOf.Length; ii++)
@@ -60,8 +74,8 @@ namespace InterviewTest.Controllers
                     List<string> thissplit = new List<string>();
                     thissplit.Add(counter.ToString());
                     thissplit.Add(typesOf[ii] == "T"[0] ? "0" : "1");
-                    thissplit.AddRange(typesOf[ii] == "T"[0] ? 
-                        Enumerable.Range(0, counter).Select(x => tripIds.GetRandom()).ToList() : 
+                    thissplit.AddRange(typesOf[ii] == "T"[0] ?
+                        Enumerable.Range(0, counter).Select(x => tripIds.GetRandom()).ToList() :
                         Enumerable.Range(0, counter).Select(x => hostIds.GetRandom()).ToList());
                     if (typesOf[ii] == "T"[0])
                     {
@@ -95,9 +109,6 @@ namespace InterviewTest.Controllers
                 var newsletter = new Newsletter()
                 {
                     LayoutOf = splits.layoutOf,
-
-                    //HostIds = Enumerable.Range(0, 2).Select(x => hostIds.GetRandom()).ToList(),
-                    //TripIds = Enumerable.Range(0, 2).Select(x => tripIds.GetRandom()).ToList(),
 
                 };
                 splits.Id = newsletter.Id;
@@ -148,32 +159,54 @@ namespace InterviewTest.Controllers
             return RedirectToAction("list");
         }
 
+        private string checkVal(string x, string y, int c)
+        {
+            if (x != y)
+            {
+                if (c % 2 > 0)
+                {
+                    return "odd";
+                }
+            }
+            return "";
+        }
+
         private List<object> res(Newsletter newsletter, FileSystemDatabase db)
         {
             List<object> Res = new List<object>();
             Layoutsplits lay = db.Get<Layoutsplits>(newsletter.Id);
             splits.layoutOf = lay.layoutOf;
-
+            int count = 1; int idx = 0;
+            string spl = db.Get<splitsText>("00000").seperate;
 
             foreach (List<string> l in splits.layoutOf)
             {
-            
+
                 switch (l[1])
                 {
                     case "0": //trip
 
                         NewsletterTripViewModel t = Convert((Trip)db.Get<Trip>(l[2]));
+                        if (spl != "")
+                            t.addclass = checkVal(
+                      splits.layoutOf.Count > (idx + 1) ? splits.layoutOf[idx + 1][1] : "x"
+                      , l[1], count);
+                        if (t.addclass != "") { count = 0; }
                         Res.Add(t);
 
                         break;
                     default: // host
                         NewsletterHostViewModel t2 = Convert((Host)db.Get<Host>(l[2]));
+                        if (spl != "") t2.addclass = checkVal(splits.layoutOf.Count > (idx + 1) ? splits.layoutOf[idx + 1][1] : "x", l[1], count);
+                        if (t2.addclass != "") { count = 0; }
                         Res.Add(t2);
 
                         break;
 
                 }
-            
+                idx += 1;
+                count += 1;
+
             }
 
             return Res;
@@ -188,9 +221,6 @@ namespace InterviewTest.Controllers
 
             var viewModel = new NewsletterViewModel
             {
-                //Items = newsletter.TripIds.Select(tid => Convert(db.Get<Trip>(tid))).Cast<object>()
-                //    .Union(newsletter.HostIds.Select(hid => Convert(db.Get<Host>(hid))))
-                //    .ToList(),
                 Items = res(newsletter, db),
 
             };
@@ -220,6 +250,7 @@ namespace InterviewTest.Controllers
             {
                 Newsletters = GetDatabase().GetAll<Newsletter>(),
                 setString = getString(),
+                seperate = getBool(),
                 res = getCountsT(),
                 res2 = getCountsH(),
 
@@ -278,5 +309,6 @@ namespace InterviewTest.Controllers
         public List<string> res2 { get; set; }
         public List<Newsletter> Newsletters { get; set; }
         public string setString { get; set; }
+        public string seperate { get; set; }
     }
 }
