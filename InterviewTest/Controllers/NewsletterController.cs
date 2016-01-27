@@ -53,9 +53,8 @@ namespace InterviewTest.Controllers
             splits.layoutOf = new List<List<string>>();
 
             typesOf = formatter.ToCharArray();
+
             splitsText sp = new splitsText() { Id = "00000", seperate = seperate, layoutString = formatter };
-            //sp.Id = "00000"; sp.seperate = seperate;
-            //sp.layoutString = formatter;
             db.Save<splitsText>(sp);
 
             int cT = typesOf.Where(x => x == "T"[0]).Select(x => x).Count();
@@ -64,8 +63,8 @@ namespace InterviewTest.Controllers
             for (int i = 0; i < count; i++)
             {
                 splits.layoutOf = new List<List<string>>();
-                string[] hostIds = db.GetAll<Host>().OrderBy(h => h.used).Select(h => h.Id).Take(cH).ToArray();
-                string[] tripIds = db.GetAll<Trip>().OrderBy(t => t.used).Select(t => t.Id).Take(cT).ToArray();
+                List<string> hostIds = db.GetAll<Host>().OrderBy(h => h.used).Select(h => h.Id).Take(cH).ToList<string>();
+                List<string> tripIds = db.GetAll<Trip>().OrderBy(t => t.used).Select(t => t.Id).Take(cT).ToList<string>();
                 // only grab required # of records so most popular isnt reused until its been caught up with.
 
                 int counter = 1;
@@ -75,52 +74,48 @@ namespace InterviewTest.Controllers
                     thissplit.Add(counter.ToString());
                     thissplit.Add(typesOf[ii] == "T"[0] ? "0" : "1");
                     thissplit.AddRange(typesOf[ii] == "T"[0] ?
-                        Enumerable.Range(0, counter).Select(x => tripIds.GetRandom()).ToList() :
-                        Enumerable.Range(0, counter).Select(x => hostIds.GetRandom()).ToList());
+                        Enumerable.Range(0, counter).Select(x => tripIds.ToArray().GetRandom()).ToList() :
+                        Enumerable.Range(0, counter).Select(x => hostIds.ToArray().GetRandom()).ToList()); // add
                     if (typesOf[ii] == "T"[0])
                     {
-                        List<string> list = new List<string>(tripIds);
-                        list.Remove(thissplit[2]); // remove ids that have been used already so to not have duplication in the newsletter
-                        tripIds = list.ToArray();
+                        tripIds.Remove(thissplit[2]); // remove ids that have been used already so to not have duplication in the newsletter
+                        saveEntry<Trip>(thissplit[2], ref db); // update Host usage counter
                     }
                     else
                     {
-                        List<string> list = new List<string>(hostIds);
-                        list.Remove(thissplit[2]); // remove ids that have been used already so to not have duplication in the newsletter
-                        hostIds = list.ToArray();
+                        hostIds.Remove(thissplit[2]); // remove ids that have been used already so to not have duplication in the newsletter
+                        saveEntry<Host>(thissplit[2], ref db); // update Host usage counter
                     }
                     splits.layoutOf.Add(thissplit);
-                    if (typesOf[ii] == "T"[0])
-                    {
-                        Trip tt = db.Get<Trip>(thissplit[2]);
-                        tt.used += 1;
-                        db.Save<Trip>(tt);
-                    }
-                    else
-                    {
-                        Host hh = db.Get<Host>(thissplit[2]);
-                        hh.used += 1;
-                        db.Save<Host>(hh);
-                    }
-
-
                 }
 
                 var newsletter = new Newsletter()
                 {
                     LayoutOf = splits.layoutOf,
-
                 };
                 splits.Id = newsletter.Id;
                 db.Save(splits);
-
                 db.Save(newsletter);
-
             }
 
             TempData["notification"] = $"Created {count} newsletters";
-
             return RedirectToAction("list");
+        }
+
+        public void saveEntry<T>(string id, ref FileSystemDatabase db)
+        {
+            if (typeof(T) == typeof(Trip))
+            {
+                Trip hh = db.Get<Trip>(id);
+                hh.used += 1;
+                db.Save<Trip>(hh);
+            }
+            else
+            {
+                Host hh = db.Get<Host>(id);
+                hh.used += 1;
+                db.Save<Host>(hh);
+            }
         }
 
         public List<string> getCountsT()
@@ -136,6 +131,7 @@ namespace InterviewTest.Controllers
 
             return l;
         }
+
         public List<string> getCountsH()
         {
             List<string> l = new List<string>();

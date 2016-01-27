@@ -15,14 +15,14 @@
             {
                 <h2>Create newsletters</h2>
                 <label>How many <input type="number" name="count" value="10" /></label>
-                <label>Format <input type="text" name="formatter" value="@Model.setString" maxlength="9"  /> (T=trip, H=Host) </label>
+                <label>Format <input type="text" name="formatter" value="@Model.setString" /> (T=trip, H=Host) </label>
                 <p>Example TTTHHTTT fr 3 trips, 2 hosts, 3 trips.</p>
 
-                <label>Group items together? <input type="checkbox" name="seperate" @Model.seperate /></label>
+                <label>Group items together? <input type="checkbox" name="seperate" id="seperate" @Model.seperate /></label>
                 <h4>Example</h4>
                 <table class="tbl">
                     <tr>
-                        <td>
+                        <td id="ExOn">
                             <b>ON</b>
                             <table id="exampleWith">
                                 <tr><td>T</td><td>T</td></tr>
@@ -32,7 +32,7 @@
                             </table>
 
                         </td>
-                        <td>
+                        <td id="ExOff">
                             <b>OFF</b>
                             <table id="exampleWithout">
                                 <tr><td>T</td><td>T</td></tr>
@@ -49,29 +49,34 @@
             }
         </div>
         <div class="row">
+            <table class="tbl">
+                <tr>
+                    <td>
+                        Trips used<br />
+                        <ul>
+                            @foreach (var v in Model.res)
+                            {
+                                <li>@v</li>
+                            }
+                        </ul>
+                    </td>
+                    <td>
+                        Hosts used<br />
+                        <ul>
+                            @foreach (string v in Model.res2)
+                            {
+                                <li>@v</li>
+                            }
+                        </ul>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="row">
             <h2>View sample newsletter</h2>
             <a href="@Url.Action("sample", "newsletter")" class="btn btn-default">View</a>
         </div>
-        <div class="list">
-            <p>Trips used</p>
-            <ul>
-                @foreach (string v in Model.res)
-                {
-                    <li>@v</li>
-                }
 
-            </ul>
-        </div>
-        <div class="list">
-            <p>Hosts used</p>
-            <ul>
-                @foreach (string v in Model.res2)
-                {
-                    <li>@v</li>
-                }
-
-            </ul>
-        </div>
     </div>
 
     @if (Model.Newsletters.Any())
@@ -101,3 +106,17 @@
     }
 
 </div>
+<script type="text/javascript">
+    // Lazy I Know...
+
+    function Toggler(x) {
+        var $state = $(x).prop("checked");
+        $('#exampleWith >tbody > tr > td').each(function (a, b) { $state ? $(b).addClass("bold").removeClass("notbold") : $(b).removeClass("bold").addClass("notbold"); });
+        $('#exampleWithout > tbody > tr >td').each(function (a, b) { !$state ? $(b).addClass("bold").removeClass("notbold") : $(b).removeClass("bold").addClass("notbold"); });
+    }
+
+    $('#seperate').click(function () { Toggler(this); });
+
+    Toggler($('#seperate'));
+
+</script>
